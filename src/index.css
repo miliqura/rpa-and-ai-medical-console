@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 确保 html 和 body 撑满全屏，背景色与你的设计匹配 */
+html,
+body,
+#root {
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  background-color: #f9fafb; /* 对应 Tailwind 的 bg-gray-50 */
+}
