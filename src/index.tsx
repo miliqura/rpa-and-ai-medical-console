@@ -9,6 +9,14 @@ import {
   supervisionCodeSteps,
   Department,
 } from "./mockData";
+import {
+  BaseModal,
+  LogPanel,
+  RobotAccountBadge,
+  SceneSummary,
+  StepIndicator,
+  StepNavButtons,
+} from "./components";
 
 const useLogOutput = () => {
   const [logs, setLogs] = useState<string[]>([]);
@@ -42,29 +50,6 @@ const useLogOutput = () => {
   }, []);
 
   return { logs, addLog, clearLogs };
-};
-
-const LogOutput = ({ logs }: { logs: string[] }) => {
-  return (
-    <div className="bg-gray-900 rounded-lg p-4 min-h-[250px] flex flex-col h-full">
-      <div className="flex items-center gap-2 mb-3 shrink-0">
-        <div className="w-3 h-3 rounded-full bg-red-500"></div>
-        <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-        <div className="w-3 h-3 rounded-full bg-green-500"></div>
-        <span className="text-xs text-gray-400 ml-2">运行日志</span>
-      </div>
-      <div className="text-sm space-y-1 flex-1 overflow-y-scroll overflow-x-hidden pr-2">
-        {logs.map((log, index) => (
-          <div key={index} className="text-gray-300">
-            {log}
-          </div>
-        ))}
-        {logs.length === 0 && (
-          <div className="text-gray-500 italic">等待执行...</div>
-        )}
-      </div>
-    </div>
-  );
 };
 
 const literatureSteps = [
@@ -328,438 +313,331 @@ const LiteratureSearchModal = ({
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-        onClick={handleClose}
-      />
-      <div className="relative bg-white rounded-xl shadow-xl w-full max-w-5xl mx-4 max-h-[90vh] flex flex-col">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <div>
-            <h3 className="font-semibold text-gray-900">📚 文献检索与初筛</h3>
-            {/* <p className="text-xs text-gray-500 mt-0.5">模拟RPA自动执行全流程 · 共{totalSteps}个步骤</p> */}
+    <BaseModal isOpen={isOpen} onClose={handleClose} title="📚 文献检索与初筛">
+      {/* 步骤条 */}
+      <div className="px-6 py-4 border-b border-gray-100">
+        <StepIndicator steps={literatureSteps} currentStep={currentStep} />
+      </div>
+
+      {/* 内容区 */}
+      <div className="flex-1 flex overflow-hidden p-6">
+        {/* 只有在步骤2（索引1）和步骤3（索引2）时，才显示左侧的日志面板 */}
+        {(currentStep === 1 || currentStep === 2) && (
+          <div className="w-1/2 pr-6">
+            <LogPanel logs={runLogs} minHeight={250} />
           </div>
-          <button
-            onClick={handleClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <svg
-              className="w-4 h-4 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
-        </div>
-        <div className="px-6 py-4 border-b border-gray-100">
-          <div className="flex items-center justify-center">
-            {literatureSteps.map((step, index) => {
-              const isCompleted = index < currentStep;
-              const isActive = index === currentStep;
+        )}
 
-              return (
-                <div key={index} className="flex items-center">
-                  <div className="flex flex-col items-center">
-                    <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all ${
-                        isCompleted
-                          ? "bg-indigo-600 text-white"
-                          : isActive
-                            ? "bg-indigo-600 text-white ring-2 ring-blue-200"
-                            : "bg-gray-200 text-gray-400"
-                      }`}
-                    >
-                      {isCompleted ? (
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M5 13l4 4L19 7"
-                          />
-                        </svg>
-                      ) : (
-                        step.step
-                      )}
-                    </div>
-                    <span
-                      className={`mt-1 text-xs font-medium ${
-                        isCompleted || isActive
-                          ? "text-gray-900"
-                          : "text-gray-400"
-                      }`}
-                    >
-                      {step.label}
-                    </span>
-                  </div>
-                  {index < totalSteps - 1 && (
-                    <div
-                      className={`w-12 h-1 mx-2 rounded-full ${index < currentStep ? "bg-indigo-600" : "bg-gray-200"}`}
-                    />
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-        <div className="flex-1 flex overflow-hidden p-6">
-          {/* 只有在步骤2（索引1）和步骤3（索引2）时，才显示左侧的日志面板 */}
-          {(currentStep === 1 || currentStep === 2) && (
-            <div className="w-1/2 pr-6">
-              <LogOutput logs={runLogs} />
-            </div>
-          )}
+        {/* 步骤1（索引0）和步骤4（索引3）时撑满全宽（w-full），其余步骤保持半宽并带左边框 */}
+        <div
+          className={
+            currentStep === 0 || currentStep === 3
+              ? "w-full"
+              : "w-1/2 pl-6 border-l border-gray-200"
+          }
+        >
+          {currentStep === 0 && (
+            <div className="h-full flex flex-col">
+              <h4 className="font-medium text-gray-900 mb-4">选择药品</h4>
 
-          {/* 步骤1（索引0）和步骤4（索引3）时撑满全宽（w-full），其余步骤保持半宽并带左边框 */}
-          <div
-            className={
-              currentStep === 0 || currentStep === 3
-                ? "w-full"
-                : "w-1/2 pl-6 border-l border-gray-200"
-            }
-          >
-            {currentStep === 0 && (
-              <div className="h-full flex flex-col">
-                <h4 className="font-medium text-gray-900 mb-4">选择药品</h4>
-
-                {/* 表格区域 */}
-                <div className="flex-1 overflow-y-auto border border-gray-200 rounded-lg">
-                  <table className="w-full text-left border-collapse">
-                    <thead className="bg-gray-50 sticky top-0 z-10">
-                      <tr>
-                        <th className="p-3 border-b border-gray-200 w-12 text-center">
-                          <input
-                            type="checkbox"
-                            checked={
-                              drugLiteratureData.length > 0 &&
-                              selectedDrugs.length === drugLiteratureData.length
+              {/* 表格区域 */}
+              <div className="flex-1 overflow-y-auto border border-gray-200 rounded-lg">
+                <table className="w-full text-left border-collapse">
+                  <thead className="bg-gray-50 sticky top-0 z-10">
+                    <tr>
+                      <th className="p-3 border-b border-gray-200 w-12 text-center">
+                        <input
+                          type="checkbox"
+                          checked={
+                            drugLiteratureData.length > 0 &&
+                            selectedDrugs.length === drugLiteratureData.length
+                          }
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedDrugs(
+                                drugLiteratureData.map((d) => d.id),
+                              );
+                            } else {
+                              setSelectedDrugs([]);
                             }
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setSelectedDrugs(
-                                  drugLiteratureData.map((d) => d.id),
-                                );
-                              } else {
-                                setSelectedDrugs([]);
-                              }
-                            }}
-                            className="w-4 h-4 text-indigo-600 rounded border-gray-300 cursor-pointer"
-                          />
-                        </th>
-                        <th className="p-3 border-b border-gray-200 text-sm font-medium text-gray-900 whitespace-nowrap">
-                          品种通用名
-                        </th>
-                        <th className="p-3 border-b border-gray-200 text-sm font-medium text-gray-900">
-                          关键词
-                        </th>
-                        <th className="p-3 border-b border-gray-200 text-sm font-medium text-gray-900">
-                          同义词
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {drugLiteratureData.map((drug) => {
-                        const isSelected = selectedDrugs.includes(drug.id);
-                        return (
-                          <tr
-                            key={drug.id}
-                            onClick={() => toggleDrug(drug.id)}
-                            className={`cursor-pointer transition-colors ${
-                              isSelected
-                                ? "bg-indigo-50/50"
-                                : "hover:bg-gray-50"
-                            }`}
-                          >
-                            <td className="p-3 text-center">
-                              <input
-                                type="checkbox"
-                                checked={isSelected}
-                                onChange={() => toggleDrug(drug.id)}
-                                onClick={(e) => e.stopPropagation()}
-                                className="w-4 h-4 text-indigo-600 rounded border-gray-300 cursor-pointer"
-                              />
-                            </td>
-                            <td className="p-3 text-sm font-medium text-gray-900 whitespace-nowrap">
-                              {drug.genericName}
-                            </td>
-                            <td className="p-3 text-xs text-gray-600">
-                              {drug.keywords}
-                            </td>
-                            <td className="p-3 text-xs text-gray-600">
-                              {drug.synonyms}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-            {currentStep === 1 && (
-              <div className="h-full">
-                <h4 className="font-medium text-gray-900 mb-4">PubMed检索式</h4>
-                <p className="text-sm text-gray-600 mb-4">
-                  根据选择的药品自动生成检索式
-                </p>
-                <div className="bg-gray-50 rounded-lg p-4 max-h-[400px] overflow-y-auto">
-                  {generatedFormulas.length > 0 ? (
-                    generatedFormulas.map((item, index) => (
-                      <div key={index} className="mb-4 last:mb-0">
-                        <div className="text-xs text-gray-500 mb-1">
-                          {item.drugName}
-                        </div>
-                        <div className="text-sm text-gray-800 font-mono break-all">
-                          {item.formula}
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-gray-400 text-sm">
-                      等待生成检索式...
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-            {currentStep === 2 && (
-              <div className="h-full flex flex-col gap-4">
-                {/* 在步骤3下方保持显示检索式内容 */}
-                <div className="flex-1 border-t border-gray-100 pt-3">
-                  <div className="text-xs font-medium text-gray-500 mb-2">
-                    已生成的检索式：
-                  </div>
-                  <div className="bg-gray-50 rounded-lg p-4 max-h-[280px] overflow-y-auto">
-                    {generatedFormulas.map((item, index) => (
-                      <div key={index} className="mb-4 last:mb-0">
-                        <div className="text-xs text-gray-500 mb-1">
-                          {item.drugName}
-                        </div>
-                        <div className="text-sm text-gray-800 font-mono break-all">
-                          {item.formula}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-            {currentStep === 3 && (
-              <div className="h-full">
-                <h4 className="font-medium text-gray-900 mb-4">检索结果</h4>
-                <div className="flex items-center justify-between mb-4">
-                  <p className="text-sm text-gray-600">
-                    共命中 {searchResults.length} 篇文献
-                  </p>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => {
-                        const headers = [
-                          "通用药品名",
-                          "PMID",
-                          "文献标题",
-                          "文献摘要",
-                          "是否包含不良反应",
-                          "AI置信度",
-                          "判断理由",
-                          "检索式",
-                        ];
-                        const rows = searchResults.map((item) => [
-                          item.drugName,
-                          item.pmid,
-                          item.title,
-                          item.abstract,
-                          item.hasAdverse,
-                          item.confidence,
-                          item.reason,
-                          item.formula,
-                        ]);
-                        const csv = [
-                          headers.join(","),
-                          ...rows.map((row) =>
-                            row
-                              .map((cell) => `"${cell.replace(/"/g, '""')}"`)
-                              .join(","),
-                          ),
-                        ].join("\n");
-                        const blob = new Blob(["\uFEFF" + csv], {
-                          type: "text/csv;charset=utf-8;",
-                        });
-                        const link = document.createElement("a");
-                        const url = URL.createObjectURL(blob);
-                        link.setAttribute("href", url);
-                        link.setAttribute(
-                          "download",
-                          `文献检索结果_${new Date().toLocaleDateString()}.csv`,
-                        );
-                        link.style.visibility = "hidden";
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                      }}
-                      className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-                    >
-                      导出表格
-                    </button>
-                    <button
-                      onClick={() => {
-                        alert("已发送到群聊！");
-                      }}
-                      className="px-3 py-1.5 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg transition-colors"
-                    >
-                      一键发送到群
-                    </button>
-                  </div>
-                </div>
-                <div className="max-h-[320px] overflow-x-auto overflow-y-auto">
-                  <table className="w-full text-sm border-collapse">
-                    <thead>
-                      <tr className="bg-gray-50">
-                        <th className="px-4 py-2 text-left font-medium text-gray-600 whitespace-nowrap">
-                          通用药品名
-                        </th>
-                        <th className="px-4 py-2 text-left font-medium text-gray-600 whitespace-nowrap">
-                          PMID
-                        </th>
-                        <th className="px-4 py-2 text-left font-medium text-gray-600">
-                          文献标题
-                        </th>
-                        <th className="px-4 py-2 text-left font-medium text-gray-600">
-                          文献摘要
-                        </th>
-                        <th className="px-4 py-2 text-left font-medium text-gray-600 whitespace-nowrap">
-                          是否包含不良反应
-                        </th>
-                        <th className="px-4 py-2 text-left font-medium text-gray-600 whitespace-nowrap">
-                          AI置信度
-                        </th>
-                        <th className="px-4 py-2 text-left font-medium text-gray-600">
-                          判断理由
-                        </th>
-                        <th className="px-4 py-2 text-left font-medium text-gray-600">
-                          检索式
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {searchResults.map((item, index) => (
-                        <tr key={index} className="hover:bg-gray-50">
-                          <td className="px-4 py-3 text-gray-900 whitespace-nowrap">
-                            {item.drugName}
+                          }}
+                          className="w-4 h-4 text-indigo-600 rounded border-gray-300 cursor-pointer"
+                        />
+                      </th>
+                      <th className="p-3 border-b border-gray-200 text-sm font-medium text-gray-900 whitespace-nowrap">
+                        品种通用名
+                      </th>
+                      <th className="p-3 border-b border-gray-200 text-sm font-medium text-gray-900">
+                        关键词
+                      </th>
+                      <th className="p-3 border-b border-gray-200 text-sm font-medium text-gray-900">
+                        同义词
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {drugLiteratureData.map((drug) => {
+                      const isSelected = selectedDrugs.includes(drug.id);
+                      return (
+                        <tr
+                          key={drug.id}
+                          onClick={() => toggleDrug(drug.id)}
+                          className={`cursor-pointer transition-colors ${
+                            isSelected ? "bg-indigo-50/50" : "hover:bg-gray-50"
+                          }`}
+                        >
+                          <td className="p-3 text-center">
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() => toggleDrug(drug.id)}
+                              onClick={(e) => e.stopPropagation()}
+                              className="w-4 h-4 text-indigo-600 rounded border-gray-300 cursor-pointer"
+                            />
                           </td>
-                          <td className="px-4 py-3 text-indigo-600 font-mono text-xs">
-                            {item.pmid}
+                          <td className="p-3 text-sm font-medium text-gray-900 whitespace-nowrap">
+                            {drug.genericName}
                           </td>
-                          <td
-                            className="px-4 py-3 text-gray-800 max-w-[180px] truncate"
-                            title={item.title}
-                          >
-                            {item.title}
+                          <td className="p-3 text-xs text-gray-600">
+                            {drug.keywords}
                           </td>
-                          <td
-                            className="px-4 py-3 text-gray-600 text-xs max-w-[180px] truncate"
-                            title={item.abstract}
-                          >
-                            {item.abstract}
-                          </td>
-                          <td className="px-4 py-3">
-                            <span
-                              className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                                item.hasAdverse === "是"
-                                  ? "bg-green-100 text-green-700"
-                                  : item.hasAdverse === "疑似"
-                                    ? "bg-yellow-100 text-yellow-700"
-                                    : "bg-gray-100 text-gray-600"
-                              }`}
-                            >
-                              {item.hasAdverse}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3">
-                            <span
-                              className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                                item.confidence === "高"
-                                  ? "bg-green-100 text-green-700"
-                                  : item.confidence === "中"
-                                    ? "bg-yellow-100 text-yellow-700"
-                                    : "bg-gray-100 text-gray-600"
-                              }`}
-                            >
-                              {item.confidence}
-                            </span>
-                          </td>
-                          <td
-                            className="px-4 py-3 text-gray-600 text-xs max-w-[150px] truncate"
-                            title={item.reason}
-                          >
-                            {item.reason}
-                          </td>
-                          <td
-                            className="px-4 py-3 text-gray-600 text-xs font-mono max-w-[200px] truncate"
-                            title={item.formula}
-                          >
-                            {item.formula}
+                          <td className="p-3 text-xs text-gray-600">
+                            {drug.synonyms}
                           </td>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+          {currentStep === 1 && (
+            <div className="h-full">
+              <h4 className="font-medium text-gray-900 mb-4">PubMed检索式</h4>
+              <p className="text-sm text-gray-600 mb-4">
+                根据选择的药品自动生成检索式
+              </p>
+              <div className="bg-gray-50 rounded-lg p-4 max-h-[400px] overflow-y-auto">
+                {generatedFormulas.length > 0 ? (
+                  generatedFormulas.map((item, index) => (
+                    <div key={index} className="mb-4 last:mb-0">
+                      <div className="text-xs text-gray-500 mb-1">
+                        {item.drugName}
+                      </div>
+                      <div className="text-sm text-gray-800 font-mono break-all">
+                        {item.formula}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-gray-400 text-sm">等待生成检索式...</div>
+                )}
+              </div>
+            </div>
+          )}
+          {currentStep === 2 && (
+            <div className="h-full flex flex-col gap-4">
+              {/* 在步骤3下方保持显示检索式内容 */}
+              <div className="flex-1 border-t border-gray-100 pt-3">
+                <div className="text-xs font-medium text-gray-500 mb-2">
+                  已生成的检索式：
+                </div>
+                <div className="bg-gray-50 rounded-lg p-4 max-h-[280px] overflow-y-auto">
+                  {generatedFormulas.map((item, index) => (
+                    <div key={index} className="mb-4 last:mb-0">
+                      <div className="text-xs text-gray-500 mb-1">
+                        {item.drugName}
+                      </div>
+                      <div className="text-sm text-gray-800 font-mono break-all">
+                        {item.formula}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
-            )}
-          </div>
-        </div>
-        <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-end">
-          <div className="flex gap-2">
-            <button
-              onClick={prevStep}
-              disabled={currentStep === 0}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                currentStep === 0
-                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-            >
-              上一步
-            </button>
-            <button
-              onClick={nextStep}
-              disabled={
-                (currentStep === 0 && selectedDrugs.length === 0) ||
-                (currentStep === 2 && isLogging)
-              }
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                (currentStep === 0 && selectedDrugs.length === 0) ||
-                (currentStep === 2 && isLogging)
-                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                  : "bg-indigo-600 text-white hover:bg-indigo-700"
-              }`}
-            >
-              {currentStep === totalSteps - 1
-                ? "✓ 完成"
-                : currentStep === 0
-                  ? "开始检索"
-                  : "下一步"}
-            </button>
-          </div>
+            </div>
+          )}
+          {currentStep === 3 && (
+            <div className="h-full">
+              <h4 className="font-medium text-gray-900 mb-4">检索结果</h4>
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-sm text-gray-600">
+                  共命中 {searchResults.length} 篇文献
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      const headers = [
+                        "通用药品名",
+                        "PMID",
+                        "文献标题",
+                        "文献摘要",
+                        "是否包含不良反应",
+                        "AI置信度",
+                        "判断理由",
+                        "检索式",
+                      ];
+                      const rows = searchResults.map((item) => [
+                        item.drugName,
+                        item.pmid,
+                        item.title,
+                        item.abstract,
+                        item.hasAdverse,
+                        item.confidence,
+                        item.reason,
+                        item.formula,
+                      ]);
+                      const csv = [
+                        headers.join(","),
+                        ...rows.map((row) =>
+                          row
+                            .map((cell) => `"${cell.replace(/"/g, '""')}"`)
+                            .join(","),
+                        ),
+                      ].join("\n");
+                      const blob = new Blob(["\uFEFF" + csv], {
+                        type: "text/csv;charset=utf-8;",
+                      });
+                      const link = document.createElement("a");
+                      const url = URL.createObjectURL(blob);
+                      link.setAttribute("href", url);
+                      link.setAttribute(
+                        "download",
+                        `文献检索结果_${new Date().toLocaleDateString()}.csv`,
+                      );
+                      link.style.visibility = "hidden";
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                    }}
+                    className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                  >
+                    导出表格
+                  </button>
+                  <button
+                    onClick={() => {
+                      alert("已发送到群聊！");
+                    }}
+                    className="px-3 py-1.5 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg transition-colors"
+                  >
+                    一键发送到群
+                  </button>
+                </div>
+              </div>
+              <div className="max-h-[320px] overflow-x-auto overflow-y-auto">
+                <table className="w-full text-sm border-collapse">
+                  <thead>
+                    <tr className="bg-gray-50">
+                      <th className="px-4 py-2 text-left font-medium text-gray-600 whitespace-nowrap">
+                        通用药品名
+                      </th>
+                      <th className="px-4 py-2 text-left font-medium text-gray-600 whitespace-nowrap">
+                        PMID
+                      </th>
+                      <th className="px-4 py-2 text-left font-medium text-gray-600">
+                        文献标题
+                      </th>
+                      <th className="px-4 py-2 text-left font-medium text-gray-600">
+                        文献摘要
+                      </th>
+                      <th className="px-4 py-2 text-left font-medium text-gray-600 whitespace-nowrap">
+                        是否包含不良反应
+                      </th>
+                      <th className="px-4 py-2 text-left font-medium text-gray-600 whitespace-nowrap">
+                        AI置信度
+                      </th>
+                      <th className="px-4 py-2 text-left font-medium text-gray-600">
+                        判断理由
+                      </th>
+                      <th className="px-4 py-2 text-left font-medium text-gray-600">
+                        检索式
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {searchResults.map((item, index) => (
+                      <tr key={index} className="hover:bg-gray-50">
+                        <td className="px-4 py-3 text-gray-900 whitespace-nowrap">
+                          {item.drugName}
+                        </td>
+                        <td className="px-4 py-3 text-indigo-600 font-mono text-xs">
+                          {item.pmid}
+                        </td>
+                        <td
+                          className="px-4 py-3 text-gray-800 max-w-[180px] truncate"
+                          title={item.title}
+                        >
+                          {item.title}
+                        </td>
+                        <td
+                          className="px-4 py-3 text-gray-600 text-xs max-w-[180px] truncate"
+                          title={item.abstract}
+                        >
+                          {item.abstract}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                              item.hasAdverse === "是"
+                                ? "bg-green-100 text-green-700"
+                                : item.hasAdverse === "疑似"
+                                  ? "bg-yellow-100 text-yellow-700"
+                                  : "bg-gray-100 text-gray-600"
+                            }`}
+                          >
+                            {item.hasAdverse}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                              item.confidence === "高"
+                                ? "bg-green-100 text-green-700"
+                                : item.confidence === "中"
+                                  ? "bg-yellow-100 text-yellow-700"
+                                  : "bg-gray-100 text-gray-600"
+                            }`}
+                          >
+                            {item.confidence}
+                          </span>
+                        </td>
+                        <td
+                          className="px-4 py-3 text-gray-600 text-xs max-w-[150px] truncate"
+                          title={item.reason}
+                        >
+                          {item.reason}
+                        </td>
+                        <td
+                          className="px-4 py-3 text-gray-600 text-xs font-mono max-w-[200px] truncate"
+                          title={item.formula}
+                        >
+                          {item.formula}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
       </div>
-    </div>
+
+      {/* 底部按钮 */}
+      <StepNavButtons
+        currentStep={currentStep}
+        totalSteps={totalSteps}
+        onPrev={prevStep}
+        onNext={nextStep}
+        nextDisabled={
+          (currentStep === 0 && selectedDrugs.length === 0) ||
+          (currentStep === 2 && isLogging)
+        }
+        nextLabel={currentStep === 0 ? "开始检索" : undefined}
+      />
+    </BaseModal>
   );
 };
 
@@ -778,7 +656,8 @@ const SupervisionCodeModal = ({
   }) => void;
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
-  const [visibleLogs, setVisibleLogs] = useState<string[]>([]);
+  // const [visibleLogs, setVisibleLogs] = useState<string[]>([]);
+  const { logs: visibleLogs, addLog, clearLogs } = useLogOutput();
   const isPrintingRef = useRef(false);
   const [isManualMode, setIsManualMode] = useState(false);
   const totalSteps = supervisionCodeSteps.length;
@@ -807,7 +686,8 @@ const SupervisionCodeModal = ({
 
   useEffect(() => {
     if (!isOpen) {
-      setVisibleLogs([]);
+      // setVisibleLogs([]);
+      clearLogs();
       setCurrentStep(0);
       setIsManualMode(false);
       return;
@@ -816,15 +696,6 @@ const SupervisionCodeModal = ({
     const stepLogs = supervisionCodeSteps[currentStep].logs;
     if (!stepLogs || stepLogs.length === 0) return;
 
-    const getCurrentTime = () => {
-      const now = new Date();
-      return now.toLocaleTimeString("zh-CN", {
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-      });
-    };
-
     let logIndex = 0;
     let timeoutId: ReturnType<typeof setTimeout>;
 
@@ -832,29 +703,21 @@ const SupervisionCodeModal = ({
     if (isPrintingRef.current) return;
     isPrintingRef.current = true;
 
-    const addLog = () => {
+    const printNext = () => {
       if (logIndex < stepLogs.length) {
-        const timestamp = getCurrentTime();
         const logContent = stepLogs[logIndex];
-        const logWithTime = `[${timestamp}] ${logContent}`;
 
-        // 使用函数式更新，确保在添加前检查日志内容是否已存在
-        setVisibleLogs((prev) => {
-          // 检查日志内容（不含时间戳）是否已经存在
-          const hasDuplicate = prev.some((log) => log.includes(logContent));
-          if (hasDuplicate) return prev;
-          return [...prev, logWithTime];
-        });
-
+        addLog(logContent);
         logIndex++;
-        timeoutId = setTimeout(addLog, 500 + Math.random() * 300);
+        timeoutId = setTimeout(printNext, 500 + Math.random() * 300);
       } else {
         isPrintingRef.current = false; // 打印完一组后解锁
       }
     };
 
     timeoutId = setTimeout(() => {
-      addLog();
+      // addLog();
+      printNext();
     }, 300);
 
     return () => {
@@ -884,242 +747,122 @@ const SupervisionCodeModal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-        onClick={onClose}
-      />
-      <div className="relative bg-white rounded-xl shadow-xl w-full max-w-5xl mx-4 max-h-[90vh] flex flex-col">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <div>
-            <h3 className="font-semibold text-gray-900">🤖 监管码采集与上传</h3>
-            {/* <p className="text-xs text-gray-500 mt-0.5">模拟RPA自动执行全流程 · 共{totalSteps}个步骤</p> */}
-          </div>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <svg
-              className="w-4 h-4 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
+    <BaseModal isOpen={isOpen} onClose={onClose} title="🤖 监管码采集与上传">
+      {/* 步骤条区域 */}
+      <div className="px-6 py-4 border-b border-gray-100">
+        <StepIndicator steps={supervisionCodeSteps} currentStep={currentStep} />
+      </div>
+
+      {/* 内容区域：左侧 LogPanel，右侧具体步骤 */}
+      <div className="flex p-6 gap-6 h-[400px]">
+        <div className="w-2/5">
+          <LogPanel logs={visibleLogs} />
         </div>
+        <div className="flex-1 flex flex-col overflow-y-auto">
+          <h4 className="text-base font-medium text-gray-900 mb-2">
+            Step {currentStep + 1}: {currentStepData.title}
+          </h4>
+          <p className="text-sm text-gray-500 mb-4">{currentStepData.desc}</p>
 
-        <div className="px-6 py-4 border-b border-gray-100">
-          <div className="flex items-center justify-center">
-            {supervisionCodeSteps.map((step, index) => {
-              const isCompleted = index < currentStep;
-              const isActive = index === currentStep;
+          {currentStep === totalSteps - 1 ? (
+            <div className="bg-emerald-50/50 border border-emerald-100 rounded-xl p-5 mt-2 animate-fade-in">
+              {/* <div className="flex items-center gap-3 mb-5">
+                <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+                  <svg
+                    className="w-5 h-5 text-emerald-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                </div>
 
-              return (
-                <div key={index} className="flex items-center">
-                  <div className="flex flex-col items-center">
-                    <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all ${
-                        isCompleted
-                          ? "bg-indigo-600 text-white"
-                          : isActive
-                            ? "bg-indigo-600 text-white ring-2 ring-blue-200"
-                            : "bg-gray-200 text-gray-400"
-                      }`}
-                    >
-                      {isCompleted ? (
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M5 13l4 4L19 7"
-                          />
-                        </svg>
-                      ) : (
-                        index + 1
-                      )}
-                    </div>
-                    <span
-                      className={`mt-1 text-xs font-medium ${
-                        isCompleted || isActive
-                          ? "text-gray-900"
-                          : "text-gray-400"
-                      }`}
-                    >
-                      {step.label}
+                <div>
+                  <h5 className="text-emerald-900 font-semibold text-sm">
+                    数据处理与上传完成
+                  </h5>
+
+                  <p className="text-emerald-700/80 text-xs mt-1">
+                    监管码已全部成功同步至国家药监局平台数据库
+                  </p>
+                </div>
+              </div> */}
+
+              <div className="grid grid-cols-2 gap-3 bg-white rounded-lg p-4 border border-emerald-50/60 shadow-sm">
+                <div className="p-3 bg-gray-50/50 rounded-lg">
+                  <div className="text-xs text-gray-500 mb-1.5">
+                    成功上传条数
+                  </div>
+
+                  <div className="text-xl font-bold text-gray-900">
+                    2,146{" "}
+                    <span className="text-xs text-gray-400 font-normal">
+                      条
                     </span>
                   </div>
-                  {index < totalSteps - 1 && (
-                    <div
-                      className={`w-12 h-1 mx-2 rounded-full ${index < currentStep ? "bg-indigo-600" : "bg-gray-200"}`}
-                    />
-                  )}
                 </div>
-              );
-            })}
-          </div>
-        </div>
 
-        <div className="flex-1 px-6 py-4 overflow-y-auto">
-          <div className="flex gap-4 h-full">
-            <div className="w-2/5">
-              <div className="bg-gray-900 rounded-lg p-4 h-full min-h-[300px] flex flex-col">
-                <div className="flex items-center gap-2 mb-3 shrink-0">
-                  <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                  <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                  <span className="text-xs text-gray-400 ml-2">运行日志</span>
+                <div className="p-3 bg-gray-50/50 rounded-lg">
+                  <div className="text-xs text-gray-500 mb-1.5">
+                    拦截重复条数
+                  </div>
+
+                  <div className="text-xl font-bold text-gray-900">
+                    89{" "}
+                    <span className="text-xs text-gray-400 font-normal">
+                      条
+                    </span>
+                  </div>
                 </div>
-                <div className="text-sm space-y-1 flex-1 overflow-y-scroll overflow-x-hidden pr-2">
-                  {visibleLogs.map((log, index) => (
-                    <div key={index} className="text-gray-300 animate-fade-in">
-                      {log}
-                    </div>
-                  ))}
-                  {visibleLogs.length === 0 && (
-                    <div className="text-gray-500 italic">等待执行...</div>
-                  )}
+                <div className="p-3 bg-gray-50/50 rounded-lg">
+                  <div className="text-xs text-gray-500 mb-1.5">
+                    无效过滤条数
+                  </div>
+                  <div className="text-xl font-bold text-gray-900">
+                    47{" "}
+                    <span className="text-xs text-gray-400 font-normal">
+                      条
+                    </span>
+                  </div>
+                </div>
+
+                <div className="p-3 bg-emerald-50/30 rounded-lg">
+                  <div className="text-xs text-gray-500 mb-1.5">整体成功率</div>
+
+                  <div className="text-xl font-bold text-emerald-600">
+                    91.5%
+                  </div>
                 </div>
               </div>
             </div>
-            <div className="flex-1">
-              <div className="step-content flex flex-col h-full">
-                <div className="flex items-center gap-2 mb-3 shrink-0">
-                  <span className="bg-indigo-50 text-indigo-600 text-xs px-2 py-1 rounded font-medium">
-                    Step {currentStep + 1}/{totalSteps}
-                  </span>
-                  <h4 className="text-base font-medium text-gray-900">
-                    {currentStepData.title}
-                  </h4>
-                </div>
-                <p className="text-sm text-gray-500 mb-4 shrink-0">
-                  {currentStepData.desc}
-                </p>
-
-                {/* 针对最后一步（统计与完成）渲染专属的漂亮数据卡片 */}
-                {currentStep === totalSteps - 1 ? (
-                  <div className="bg-emerald-50/50 border border-emerald-100 rounded-xl p-5 mt-2 animate-fade-in">
-                    <div className="flex items-center gap-3 mb-5">
-                      <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
-                        <svg
-                          className="w-5 h-5 text-emerald-600"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M5 13l4 4L19 7"
-                          />
-                        </svg>
-                      </div>
-                      <div>
-                        <h5 className="text-emerald-900 font-semibold text-sm">
-                          数据处理与上传完成
-                        </h5>
-                        <p className="text-emerald-700/80 text-xs mt-1">
-                          监管码已全部成功同步至国家药监局平台数据库
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3 bg-white rounded-lg p-4 border border-emerald-50/60 shadow-sm">
-                      <div className="p-3 bg-gray-50/50 rounded-lg">
-                        <div className="text-xs text-gray-500 mb-1.5">
-                          成功上传条数
-                        </div>
-                        <div className="text-xl font-bold text-gray-900">
-                          2,146{" "}
-                          <span className="text-xs text-gray-400 font-normal">
-                            条
-                          </span>
-                        </div>
-                      </div>
-                      <div className="p-3 bg-gray-50/50 rounded-lg">
-                        <div className="text-xs text-gray-500 mb-1.5">
-                          拦截重复条数
-                        </div>
-                        <div className="text-xl font-bold text-gray-900">
-                          89{" "}
-                          <span className="text-xs text-gray-400 font-normal">
-                            条
-                          </span>
-                        </div>
-                      </div>
-                      <div className="p-3 bg-gray-50/50 rounded-lg">
-                        <div className="text-xs text-gray-500 mb-1.5">
-                          无效过滤条数
-                        </div>
-                        <div className="text-xl font-bold text-gray-900">
-                          47{" "}
-                          <span className="text-xs text-gray-400 font-normal">
-                            条
-                          </span>
-                        </div>
-                      </div>
-                      <div className="p-3 bg-emerald-50/30 rounded-lg">
-                        <div className="text-xs text-gray-500 mb-1.5">
-                          整体成功率
-                        </div>
-                        <div className="text-xl font-bold text-emerald-600">
-                          91.5%
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  /* 前置步骤依然使用 prose 渲染，增加颜色限制使其更协调 */
-                  <div className="flex-1 overflow-y-auto pr-2">
-                    <div
-                      className="prose prose-sm max-w-none prose-indigo prose-headings:text-gray-800 prose-p:text-gray-600 prose-li:text-gray-600"
-                      dangerouslySetInnerHTML={{
-                        __html: currentStepData.content(),
-                      }}
-                    />
-                  </div>
-                )}
-              </div>
+          ) : (
+            /* 前置步骤依然使用 prose 渲染，增加颜色限制使其更协调 */
+            <div className="flex-1 overflow-y-auto pr-2">
+              <div
+                className="prose prose-sm max-w-none prose-indigo prose-headings:text-gray-800 prose-p:text-gray-600 prose-li:text-gray-600"
+                dangerouslySetInnerHTML={{
+                  __html: currentStepData.content(),
+                }}
+              />
             </div>
-          </div>
-        </div>
-
-        <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-end">
-          <div className="flex gap-2">
-            <button
-              onClick={prevStep}
-              disabled={currentStep === 0}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                currentStep === 0
-                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-            >
-              上一步
-            </button>
-            <button
-              onClick={nextStep}
-              className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
-            >
-              {currentStep === totalSteps - 1 ? "✓ 完成" : "下一步"}
-            </button>
-          </div>
+          )}
         </div>
       </div>
-    </div>
+
+      {/* 底部按钮栏 */}
+      <StepNavButtons
+        currentStep={currentStep}
+        totalSteps={totalSteps}
+        onPrev={prevStep}
+        onNext={nextStep}
+      />
+    </BaseModal>
   );
 };
 
@@ -1136,91 +879,65 @@ const RunningModal = ({
   status: "running" | "completed" | "error";
   logs: { timestamp: string; message: string }[];
 }) => {
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-        onClick={onClose}
-      />
-      <div className="relative bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 overflow-hidden">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <div className="flex items-center gap-3">
-            {status === "running" && (
-              <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center">
-                <svg
-                  className="w-4 h-4 text-indigo-600 animate-spin"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  />
-                </svg>
-              </div>
-            )}
-            {status === "completed" && (
-              <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center">
-                <svg
-                  className="w-4 h-4 text-emerald-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
-              </div>
-            )}
-            {status === "error" && (
-              <div className="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center">
-                <svg
-                  className="w-4 h-4 text-red-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </div>
-            )}
-            <div>
-              <h3 className="font-semibold text-gray-900 text-sm">
-                {status === "running"
-                  ? "任务执行中"
-                  : status === "completed"
-                    ? "任务完成"
-                    : "任务失败"}
-              </h3>
-              <p className="text-xs text-gray-500">{sceneName}</p>
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          >
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={
+        status === "running"
+          ? "任务执行中"
+          : status === "completed"
+            ? "任务完成"
+            : "任务失败"
+      }
+      className="max-w-lg"
+    >
+      {/* 场景名 + 状态图标 */}
+      <div className="px-6 pt-4 flex items-center gap-3">
+        {status === "running" && (
+          <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center">
             <svg
-              className="w-4 h-4 text-gray-400"
+              className="w-4 h-4 text-indigo-600 animate-spin"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              />
+            </svg>
+          </div>
+        )}
+        {status === "completed" && (
+          <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center">
+            <svg
+              className="w-4 h-4 text-emerald-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+          </div>
+        )}
+        {status === "error" && (
+          <div className="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center">
+            <svg
+              className="w-4 h-4 text-red-600"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -1232,37 +949,42 @@ const RunningModal = ({
                 d="M6 18L18 6M6 6l12 12"
               />
             </svg>
-          </button>
-        </div>
-        <div className="p-6">
-          <div className="bg-gray-50 rounded-lg p-4 h-40 overflow-y-auto">
-            {logs.map((log, index) => (
-              <div key={index} className="flex gap-3 mb-2">
-                <span className="text-xs text-gray-400 shrink-0">
-                  {log.timestamp}
-                </span>
-                <span className="text-xs text-gray-600">{log.message}</span>
-              </div>
-            ))}
-            {logs.length === 0 && (
-              <p className="text-xs text-gray-400 text-center py-8">
-                等待执行...
-              </p>
-            )}
-          </div>
-        </div>
-        {status !== "running" && (
-          <div className="px-6 py-4 border-t border-gray-100 flex justify-end">
-            <button
-              onClick={onClose}
-              className="px-5 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"
-            >
-              确定
-            </button>
           </div>
         )}
+        <p className="text-xs text-gray-500">{sceneName}</p>
       </div>
-    </div>
+
+      {/* 日志区域 */}
+      <div className="p-6">
+        <div className="bg-gray-50 rounded-lg p-4 h-40 overflow-y-auto">
+          {logs.map((log, index) => (
+            <div key={index} className="flex gap-3 mb-2">
+              <span className="text-xs text-gray-400 shrink-0">
+                {log.timestamp}
+              </span>
+              <span className="text-xs text-gray-600">{log.message}</span>
+            </div>
+          ))}
+          {logs.length === 0 && (
+            <p className="text-xs text-gray-400 text-center py-8">
+              等待执行...
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* 底部按钮 */}
+      {status !== "running" && (
+        <div className="px-6 py-4 border-t border-gray-100 flex justify-end">
+          <button
+            onClick={onClose}
+            className="px-5 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+          >
+            确定
+          </button>
+        </div>
+      )}
+    </BaseModal>
   );
 };
 
@@ -1700,91 +1422,20 @@ const IndexPage = () => {
                           </span>
                           {scene.executorAccounts.map((accountId) => {
                             const account = getRobotAccount(accountId);
-                            if (!account) return null;
-                            const statusColor = {
-                              idle: "border border-green-300 text-green-600 bg-transparent",
-                              running:
-                                "border border-indigo-300 text-indigo-600 bg-transparent",
-                              offline:
-                                "border border-gray-300 text-gray-500 bg-transparent",
-                            };
-                            const statusText = {
-                              idle: "空闲",
-                              running: "运行中",
-                              offline: "离线",
-                            };
-                            return (
-                              <span
+                            return account ? (
+                              <RobotAccountBadge
                                 key={accountId}
-                                className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusColor[account.status]}`}
-                                title={`${account.name} - ${statusText[account.status]}`}
-                              >
-                                {account.name}
-                              </span>
-                            );
+                                account={account}
+                              />
+                            ) : null;
                           })}
                         </div>
 
                         {scene.summary && (
-                          <div className="mt-2 p-2 bg-indigo-50 rounded-lg border border-indigo-200">
-                            <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-                              {scene.id === "literature-search" ? (
-                                <>
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-xs text-indigo-600">
-                                      检索到的文献总篇数
-                                    </span>
-                                    <span className="text-xs font-medium text-indigo-800">
-                                      {scene.summary.totalCount?.toLocaleString()}
-                                    </span>
-                                  </div>
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-xs text-indigo-600">
-                                      AI命中文献篇数
-                                    </span>
-                                    <span className="text-xs font-medium text-indigo-800">
-                                      {scene.summary.aiHitCount?.toLocaleString()}
-                                    </span>
-                                  </div>
-                                </>
-                              ) : (
-                                <>
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-xs text-indigo-600">
-                                      成功条数
-                                    </span>
-                                    <span className="text-xs font-medium text-indigo-800">
-                                      {scene.summary.successCount?.toLocaleString()}
-                                    </span>
-                                  </div>
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-xs text-indigo-600">
-                                      重复条数
-                                    </span>
-                                    <span className="text-xs font-medium text-indigo-800">
-                                      {scene.summary.duplicateCount?.toLocaleString()}
-                                    </span>
-                                  </div>
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-xs text-indigo-600">
-                                      过滤条数
-                                    </span>
-                                    <span className="text-xs font-medium text-indigo-800">
-                                      {scene.summary.filteredCount?.toLocaleString()}
-                                    </span>
-                                  </div>
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-xs text-indigo-600">
-                                      成功率
-                                    </span>
-                                    <span className="text-xs font-medium text-indigo-800">
-                                      {scene.summary.successRate}
-                                    </span>
-                                  </div>
-                                </>
-                              )}
-                            </div>
-                          </div>
+                          <SceneSummary
+                            summary={scene.summary}
+                            sceneId={scene.id}
+                          />
                         )}
 
                         <div className="flex items-center justify-end mt-2">
