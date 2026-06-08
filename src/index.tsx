@@ -137,10 +137,6 @@ const LiteratureSearchModal = ({
     );
   };
 
-  const selectAll = () => {
-    setSelectedDrugs(drugLiteratureData.map((d) => d.id));
-  };
-
   const handleClose = () => {
     onClose();
     setSelectedDrugs([]);
