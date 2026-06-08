@@ -90,6 +90,10 @@ export interface Scene {
     successRate?: string;
     totalCount?: number;
     aiHitCount?: number;
+    approvalCount?: number;
+    deviceCount?: number;
+    recallCount?: number;
+    regCount?: number;
   };
 }
 

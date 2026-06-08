@@ -120,12 +120,19 @@ export const SceneSummary = ({
           { label: "检索到的文献总篇数", key: "totalCount" },
           { label: "AI命中文献篇数", key: "aiHitCount" },
         ]
-      : [
-          { label: "成功条数", key: "successCount" },
-          { label: "重复条数", key: "duplicateCount" },
-          { label: "过滤条数", key: "filteredCount" },
-          { label: "成功率", key: "successRate" },
-        ];
+      : sceneId === "drug-test-scrape"
+        ? [
+            { label: "批准信息", key: "approvalCount" },
+            { label: "器械注册", key: "deviceCount" },
+            { label: "召回公告", key: "recallCount" },
+            { label: "法规监测", key: "regCount" },
+          ]
+        : [
+            { label: "成功条数", key: "successCount" },
+            { label: "重复条数", key: "duplicateCount" },
+            { label: "过滤条数", key: "filteredCount" },
+            { label: "成功率", key: "successRate" },
+          ];
 
   return (
     <div className="mt-2 p-2 bg-indigo-50 rounded-lg border border-indigo-200">

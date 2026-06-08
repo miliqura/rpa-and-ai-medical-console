@@ -115,14 +115,9 @@ const IndexPage = () => {
     );
   };
 
-  const handleDrugTestScrapeComplete = (summary: { successCount: number }) => {
+  const handleDrugTestScrapeComplete = () => {
     const now = new Date();
-    const currentDate = now.toISOString().split("T")[0];
-    const currentTime = now.toLocaleTimeString("zh-CN", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-    const lastRun = `${currentDate} ${currentTime}`;
+    const lastRun = `${now.toISOString().split("T")[0]} ${now.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}`;
 
     setDepartmentsState((prev) =>
       prev.map((dept) => {
@@ -136,7 +131,10 @@ const IndexPage = () => {
                   status: "completed",
                   lastRun,
                   summary: {
-                    successCount: summary.successCount,
+                    approvalCount: 156,
+                    deviceCount: 89,
+                    recallCount: 5,
+                    regCount: 5,
                   },
                 };
               }
