@@ -1,4 +1,4 @@
-import { BaseModal } from "../src/components";
+import { BaseModal } from "../components";
 
 export const RunningModal = ({
   isOpen,

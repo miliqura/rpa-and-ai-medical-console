@@ -243,3 +243,33 @@ export const StepNavButtons = ({
     </button>
   </div>
 );
+
+// components.tsx 新增
+export const StatGrid = ({
+  stats,
+  hint,
+}: {
+  stats: { label: string; value: string; color?: string }[];
+  hint?: React.ReactNode;
+}) => (
+  <>
+    <div className="grid grid-cols-3 gap-2 mb-3">
+      {stats.map((s, i) => (
+        <div
+          key={i}
+          className="bg-gray-50 rounded-lg p-3 text-center border border-gray-100"
+        >
+          <div className={`text-xl font-bold ${s.color ?? "text-gray-900"}`}>
+            {s.value}
+          </div>
+          <div className="text-xs text-gray-500 mt-1">{s.label}</div>
+        </div>
+      ))}
+    </div>
+    {hint && (
+      <div className="mt-3 p-3 rounded-lg text-xs leading-relaxed bg-indigo-50 border border-indigo-200 text-indigo-800">
+        {hint}
+      </div>
+    )}
+  </>
+);

@@ -4,14 +4,14 @@ import {
   LogPanel,
   StepIndicator,
   StepNavButtons,
-} from "../src/components";
+} from "../components";
 import { useLogOutput } from "../hooks";
 import {
   drugLiteratureData,
   searchFormulas,
   literatureData,
-} from "../src/mockData";
-import { exportCsv } from "../utils/exportCSV";
+} from "../mockData";
+import { exportCsv } from "../utils";
 
 const literatureSteps = [
   {

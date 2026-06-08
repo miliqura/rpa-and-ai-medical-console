@@ -4,7 +4,8 @@ import {
   LiteratureSearchModal,
   SupervisionCodeModal,
   RunningModal,
-} from "../modals";
+  DrugTestScrapeModal,
+} from "./modals";
 import {
   departments,
   statsData,
@@ -19,6 +20,7 @@ const IndexPage = () => {
   const [literatureModalOpen, setLiteratureModalOpen] = useState(false);
   const [supervisionCodeModalOpen, setSupervisionCodeModalOpen] =
     useState(false);
+  const [drugTestScrapeModalOpen, setDrugTestScrapeModalOpen] = useState(false);
   const [currentScene, setCurrentScene] = useState<{
     name: string;
     status: "running" | "completed" | "error";
@@ -113,6 +115,40 @@ const IndexPage = () => {
     );
   };
 
+  const handleDrugTestScrapeComplete = (summary: { successCount: number }) => {
+    const now = new Date();
+    const currentDate = now.toISOString().split("T")[0];
+    const currentTime = now.toLocaleTimeString("zh-CN", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    const lastRun = `${currentDate} ${currentTime}`;
+
+    setDepartmentsState((prev) =>
+      prev.map((dept) => {
+        if (dept.id === "reg-compliance") {
+          return {
+            ...dept,
+            scenes: dept.scenes.map((scene) => {
+              if (scene.id === "drug-test-scrape") {
+                return {
+                  ...scene,
+                  status: "completed",
+                  lastRun,
+                  summary: {
+                    successCount: summary.successCount,
+                  },
+                };
+              }
+              return scene;
+            }),
+          };
+        }
+        return dept;
+      }),
+    );
+  };
+
   const handleRun = (deptId: string, sceneId: string) => {
     if (sceneId === "literature-search") {
       setLiteratureModalOpen(true);
@@ -121,6 +157,11 @@ const IndexPage = () => {
 
     if (sceneId === "reg-code-upload") {
       setSupervisionCodeModalOpen(true);
+      return;
+    }
+
+    if (sceneId === "drug-test-scrape") {
+      setDrugTestScrapeModalOpen(true);
       return;
     }
 
@@ -506,6 +547,12 @@ const IndexPage = () => {
         isOpen={supervisionCodeModalOpen}
         onClose={() => setSupervisionCodeModalOpen(false)}
         onComplete={handleSupervisionCodeComplete}
+      />
+
+      <DrugTestScrapeModal
+        isOpen={drugTestScrapeModalOpen}
+        onClose={() => setDrugTestScrapeModalOpen(false)}
+        onComplete={handleDrugTestScrapeComplete}
       />
     </div>
   );
